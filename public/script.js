@@ -77,8 +77,6 @@ function formatSituation(situacao) {
 
 // Função para criar cards de resultado
 function createResultCards(data) {
-    const endereco = `${data.logradouro || ''}, ${data.numero || 'S/N'} - ${data.bairro || ''}, ${data.municipio || ''} - ${data.uf || ''}, ${data.cep || ''}`.trim();
-    
     const cards = [
         {
             title: 'Razão Social',
@@ -107,9 +105,30 @@ function createResultCards(data) {
             title: 'Natureza Jurídica',
             value: data.natureza_juridica || 'Não informado'
         },
+        // Dados de Endereço
         {
-            title: 'Endereço Completo',
-            value: endereco
+            title: 'Logradouro',
+            value: data.logradouro || 'Não informado'
+        },
+        {
+            title: 'Número',
+            value: data.numero || 'S/N'
+        },
+        {
+            title: 'Bairro',
+            value: data.bairro || 'Não informado'
+        },
+        {
+            title: 'Cidade',
+            value: data.municipio || 'Não informado'
+        },
+        {
+            title: 'UF',
+            value: data.uf || 'Não informado'
+        },
+        {
+            title: 'CEP',
+            value: data.cep || 'Não informado'
         }
     ];
     
