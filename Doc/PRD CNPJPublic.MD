@@ -85,3 +85,5 @@ Abaixo, a relação entre os campos do JSON de retorno da API e os rótulos a se
 > **Soluções Propostas:**
 > 1.  **JSONP:** Verificar se a biblioteca utilizada ou a API suporta JSONP.
 > 2.  **Proxy Server (Recomendado):** Criar uma camada intermediária simples (Node.js/Vercel Serverless Function/PHP) que receba a requisição do frontend, chame a ReceitaWS e devolva o JSON para o frontend. Isso evita o bloqueio de CORS no navegador.
+
+Versão Atual.
