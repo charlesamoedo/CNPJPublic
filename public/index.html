@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de CNPJ - CNPJPublic</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Consulta de CNPJ</h1>
+            <p class="subtitle">Verifique a situação cadastral de empresas brasileiras</p>
+        </header>
+
+        <main>
+            <section class="search-section" id="searchSection">
+                <div class="input-group">
+                    <input
+                        type="text"
+                        id="cnpjInput"
+                        placeholder="Digite o CNPJ (ex: 00.000.000/0000-00)"
+                        class="cnpj-input"
+                        autocomplete="off"
+                    >
+                    <button id="searchBtn" class="btn-search" onclick="handleSearch()">
+                        Consultar
+                    </button>
+                </div>
+                <div class="error-message" id="errorMessage"></div>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Buscando informações...</p>
+                </div>
+            </section>
+
+            <section class="results-section" id="resultsSection">
+                <button class="btn-clear" id="clearBtn" onclick="handleClear()">
+                    ← Nova Consulta
+                </button>
+                <div class="cards-container" id="cardsContainer"></div>
+            </section>
+        </main>
+
+        <footer>
+            <p>© 2026 CNPJPublic | Dados fornecidos pela ReceitaWS</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
