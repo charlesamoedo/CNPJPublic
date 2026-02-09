@@ -16,9 +16,45 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🔍 CNPJ Público</h1>
-            <p class="subtitle">Consulte dados cadastrais de empresas brasileiras</p>
+        <!-- Modal de Autenticação -->
+        <div class="auth-modal" id="authModal">
+            <div class="auth-container">
+                <h2 id="authTitle">Fazer Login</h2>
+                
+                <div class="auth-form" id="loginForm">
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                    <input type="password" id="loginPassword" placeholder="Senha" required>
+                    <button onclick="handleLogin()" class="btn-auth">Login</button>
+                    <p class="auth-toggle">Não tem conta? <a href="javascript:toggleAuthForm()">Registre-se</a></p>
+                </div>
+
+                <div class="auth-form" id="registerForm" style="display: none;">
+                    <input type="text" id="registerName" placeholder="Seu Nome" required>
+                    <input type="email" id="registerEmail" placeholder="Email" required>
+                    <input type="password" id="registerPassword" placeholder="Senha (min 6 caracteres)" required>
+                    <input type="password" id="registerConfirm" placeholder="Confirmar Senha" required>
+                    <button onclick="handleRegister()" class="btn-auth">Registrar</button>
+                    <p class="auth-toggle">Já tem conta? <a href="javascript:toggleAuthForm()">Faça Login</a></p>
+                </div>
+
+                <div class="auth-message" id="authMessage"></div>
+                
+                <p class="auth-guest" onclick="skipAuth()" style="text-align: center; margin-top: 20px; cursor: pointer;">
+                    ⏭️ Continuar como Convidado
+                </p>
+            </div>
+        </div>
+
+        <!-- Header com opção de Logout -->
+        <header class="header-with-user">
+            <div>
+                <h1>🔍 CNPJ Público</h1>
+                <p class="subtitle">Consulte dados cadastrais de empresas brasileiras</p>
+            </div>
+            <div class="user-info" id="userInfo" style="display: none;">
+                <span id="userName">Olá, Usuário</span>
+                <button onclick="logoutAndRefresh()" class="btn-logout">🚪 Sair</button>
+            </div>
         </header>
 
         <main>
@@ -71,6 +107,7 @@
         </footer>
     </div>
 
+    <script src="auth.js"></script>
     <script src="script.js"></script>
     <script>
         // Registrar Service Worker para PWA

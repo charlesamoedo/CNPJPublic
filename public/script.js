@@ -395,6 +395,182 @@ function generateSimplePDF() {
 
 // ====== FIM DE FUNÇÕES DE EXPORTAÇÃO ======
 
+// ====== FUNÇÕES DE AUTENTICAÇÃO ======
+
+// Hash simples (não usar em produção!)
+function hashPassword(password) {
+    let hash = 0;
+    for (let i = 0; i < password.length; i++) {
+        const char = password.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return Math.abs(hash).toString(16);
+}
+
+// Obter usuários
+function getAllUsers() {
+    const users = localStorage.getItem('cnpj_users_db');
+    return users ? JSON.parse(users) : {};
+}
+
+// Salvar usuários
+function saveUsers(users) {
+    localStorage.setItem('cnpj_users_db', JSON.stringify(users));
+}
+
+// Obter usuário logado
+function getCurrentUser() {
+    const auth = localStorage.getItem('cnpj_user_auth');
+    return auth ? JSON.parse(auth) : null;
+}
+
+// Fazer login
+function handleLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const authMessage = document.getElementById('authMessage');
+
+    if (!email || !password) {
+        showAuthMessage('Por favor, preencha todos os campos', 'error');
+        return;
+    }
+
+    const users = getAllUsers();
+    const user = users[email];
+
+    if (!user) {
+        showAuthMessage('Usuário não encontrado', 'error');
+        return;
+    }
+
+    if (hashPassword(password) !== user.passwordHash) {
+        showAuthMessage('Senha incorreta', 'error');
+        return;
+    }
+
+    const userSession = {
+        email: user.email,
+        name: user.name,
+        loginTime: new Date().toISOString()
+    };
+    localStorage.setItem('cnpj_user_auth', JSON.stringify(userSession));
+
+    showAuthMessage('Login realizado com sucesso!', 'success');
+    setTimeout(() => {
+        checkAuthStatus();
+    }, 500);
+}
+
+// Fazer registro
+function handleRegister() {
+    const name = document.getElementById('registerName').value.trim();
+    const email = document.getElementById('registerEmail').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const confirm = document.getElementById('registerConfirm').value;
+
+    if (!name || !email || !password || !confirm) {
+        showAuthMessage('Por favor, preencha todos os campos', 'error');
+        return;
+    }
+
+    if (password !== confirm) {
+        showAuthMessage('As senhas não coincidem', 'error');
+        return;
+    }
+
+    if (password.length < 6) {
+        showAuthMessage('Senha deve ter no mínimo 6 caracteres', 'error');
+        return;
+    }
+
+    const users = getAllUsers();
+
+    if (users[email]) {
+        showAuthMessage('Este email já está registrado', 'error');
+        return;
+    }
+
+    users[email] = {
+        email,
+        name,
+        passwordHash: hashPassword(password),
+        registeredAt: new Date().toISOString()
+    };
+
+    saveUsers(users);
+
+    const userSession = {
+        email,
+        name,
+        loginTime: new Date().toISOString()
+    };
+    localStorage.setItem('cnpj_user_auth', JSON.stringify(userSession));
+
+    showAuthMessage('Registrado com sucesso!', 'success');
+    setTimeout(() => {
+        checkAuthStatus();
+    }, 500);
+}
+
+// Mostrar mensagem de autenticação
+function showAuthMessage(message, type) {
+    const authMessage = document.getElementById('authMessage');
+    authMessage.textContent = message;
+    authMessage.className = `auth-message ${type}`;
+}
+
+// Alternar entre Login e Registro
+function toggleAuthForm() {
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const authTitle = document.getElementById('authTitle');
+
+    if (loginForm.style.display === 'none') {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        authTitle.textContent = 'Fazer Login';
+    } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        authTitle.textContent = 'Registre-se';
+    }
+
+    document.getElementById('authMessage').className = 'auth-message';
+}
+
+// Pular autenticação (continuar como convidado)
+function skipAuth() {
+    const authModal = document.getElementById('authModal');
+    authModal.classList.add('hidden');
+}
+
+// Fazer logout
+function logoutAndRefresh() {
+    localStorage.removeItem('cnpj_user_auth');
+    location.reload();
+}
+
+// Verificar status de autenticação
+function checkAuthStatus() {
+    const authModal = document.getElementById('authModal');
+    const userInfo = document.getElementById('userInfo');
+    const currentUser = getCurrentUser();
+
+    if (currentUser) {
+        // Usuário logado
+        authModal.classList.add('hidden');
+        userInfo.style.display = 'flex';
+        document.getElementById('userName').textContent = `Olá, ${currentUser.name}`;
+    } else {
+        // Usuário não logado
+        authModal.classList.remove('hidden');
+        userInfo.style.display = 'none';
+    }
+}
+
+// ====== FIM DE FUNÇÕES DE AUTENTICAÇÃO ======
+
 // Função para criar cards de resultado
 function createResultCards(data) {
     const cards = [
@@ -594,4 +770,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cnpjInput.focus();
     searchSection.classList.add('active');
     renderHistory(); // Carregar histórico na página inicial
+    
+    // Verificar autenticação
+    checkAuthStatus();
 });
