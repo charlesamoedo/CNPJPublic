@@ -94,16 +94,18 @@ function saveHistory(history) {
 }
 
 // Adicionar nova consulta ao histórico
-function addToHistory(cnpj, companyName) {
+function addToHistory(cnpj, companyData) {
     const history = getHistory();
+    const sanitizedCnpj = sanitizeCNPJ(cnpj);
     
     // Remover duplicatas (se a mesma empresa foi consultada antes)
-    const filtered = history.filter(item => sanitizeCNPJ(item.cnpj) !== sanitizeCNPJ(cnpj));
+    const filtered = history.filter(item => sanitizeCNPJ(item.cnpj) !== sanitizedCnpj);
     
-    // Adicionar nova consulta no início
+    // Adicionar nova consulta no início WITH dados completos
     filtered.unshift({
-        cnpj: formataCNPJ(sanitizeCNPJ(cnpj)),
-        name: companyName,
+        cnpj: formataCNPJ(sanitizedCnpj),
+        name: companyData.nome || 'Empresa desconhecida',
+        data: companyData, // Armazenar dados completos para evitar chamada à API
         timestamp: new Date().toISOString()
     });
     
@@ -138,12 +140,34 @@ function renderHistory() {
 
 // Função para buscar a partir do histórico
 function searchFromHistory(cnpj) {
-    cnpjInput.value = cnpj;
-    cnpjInput.focus();
-    handleSearch();
+    const history = getHistory();
+    const item = history.find(h => h.cnpj === cnpj);
+    
+    if (item && item.data) {
+        // Usar dados em cache, sem chamar a API
+        cnpjInput.value = cnpj;
+        displayResults(item.data);
+    } else {
+        // Se não houver dados em cache, digitar no input e fazer a busca normalmente
+        cnpjInput.value = cnpj;
+        cnpjInput.focus();
+        handleSearch();
+    }
 }
 
 // ====== FIM DE FUNÇÕES DE HISTÓRICO ======
+
+// Função para exibir resultados (reutilizável)
+function displayResults(data) {
+    // Esconder search section e mostrar results
+    searchSection.classList.remove('active');
+    resultsSection.classList.add('active');
+    
+    // Renderizar cards
+    cardsContainer.innerHTML = createResultCards(data);
+}
+
+// ====== FIM DE FUNÇÃO AUXILIAR ======
 
 // Função para criar cards de resultado
 function createResultCards(data) {
@@ -312,15 +336,11 @@ async function handleSearch() {
         
         const data = await response.json();
         
-        // Adicionar ao histórico
-        addToHistory(sanitized, data.nome || 'Empresa desconhecida');
+        // Adicionar ao histórico COM dados completos
+        addToHistory(sanitized, data);
         
-        // Esconder search section e mostrar results
-        searchSection.classList.remove('active');
-        resultsSection.classList.add('active');
-        
-        // Renderizar cards
-        cardsContainer.innerHTML = createResultCards(data);
+        // Exibir resultados
+        displayResults(data);
         
     } catch (error) {
         console.error('Erro:', error);
