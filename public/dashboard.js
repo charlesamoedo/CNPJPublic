@@ -138,6 +138,8 @@ function escapeHTML(text) {
 document.addEventListener('DOMContentLoaded', () => {
     renderStats();
 
-    // Atualizar a cada segundo (em caso de mudanças)
-    setInterval(renderStats, 1000);
+    // Observar mudanças no localStorage quando nova consulta é feita
+    window.addEventListener('storage', () => {
+        renderStats();
+    });
 });
