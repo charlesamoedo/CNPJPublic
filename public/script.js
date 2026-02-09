@@ -6,9 +6,15 @@ const loading = document.getElementById('loading');
 const searchSection = document.getElementById('searchSection');
 const resultsSection = document.getElementById('resultsSection');
 const cardsContainer = document.getElementById('cardsContainer');
+const historyGrid = document.getElementById('historyGrid');
+const historySection = document.getElementById('historySection');
 
 // API endpoint - usar rota relativa para funcionar em qualquer ambiente
 const API_ENDPOINT = '/api/cnpj';
+
+// Gerenciamento de histórico (máx 10 itens)
+const MAX_HISTORY = 10;
+const HISTORY_KEY = 'cnpj_search_history';
 
 // Aplicar máscara ao input
 cnpjInput.addEventListener('input', (e) => {
@@ -73,6 +79,71 @@ function formatSituation(situacao) {
         return `<span class="status-suspensa">${situacao}</span>`;
     }
 }
+
+// ====== FUNÇÕES DE HISTÓRICO ======
+
+// Obter histórico do localStorage
+function getHistory() {
+    const history = localStorage.getItem(HISTORY_KEY);
+    return history ? JSON.parse(history) : [];
+}
+
+// Salvar histórico no localStorage
+function saveHistory(history) {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}
+
+// Adicionar nova consulta ao histórico
+function addToHistory(cnpj, companyName) {
+    const history = getHistory();
+    
+    // Remover duplicatas (se a mesma empresa foi consultada antes)
+    const filtered = history.filter(item => sanitizeCNPJ(item.cnpj) !== sanitizeCNPJ(cnpj));
+    
+    // Adicionar nova consulta no início
+    filtered.unshift({
+        cnpj: formataCNPJ(sanitizeCNPJ(cnpj)),
+        name: companyName,
+        timestamp: new Date().toISOString()
+    });
+    
+    // Manter apenas os últimos MAX_HISTORY itens
+    const limited = filtered.slice(0, MAX_HISTORY);
+    
+    saveHistory(limited);
+    renderHistory();
+}
+
+// Renderizar histórico na tela
+function renderHistory() {
+    const history = getHistory();
+    
+    if (history.length === 0) {
+        historyGrid.innerHTML = '<p class="empty-message">Nenhuma consulta realizada ainda</p>';
+        return;
+    }
+    
+    let html = '';
+    history.forEach((item, index) => {
+        html += `
+            <div class="history-card" onclick="searchFromHistory('${item.cnpj}')">
+                <div class="history-card-cnpj">${item.cnpj}</div>
+                <div class="history-card-company" title="${item.name}">${item.name}</div>
+            </div>
+        `;
+    });
+    
+    historyGrid.innerHTML = html;
+}
+
+// Função para buscar a partir do histórico
+function searchFromHistory(cnpj) {
+    cnpjInput.value = cnpj;
+    cnpjInput.focus();
+    handleSearch();
+}
+
+// ====== FIM DE FUNÇÕES DE HISTÓRICO ======
 
 // Função para criar cards de resultado
 function createResultCards(data) {
@@ -241,6 +312,9 @@ async function handleSearch() {
         
         const data = await response.json();
         
+        // Adicionar ao histórico
+        addToHistory(sanitized, data.nome || 'Empresa desconhecida');
+        
         // Esconder search section e mostrar results
         searchSection.classList.remove('active');
         resultsSection.classList.add('active');
@@ -272,4 +346,5 @@ function handleClear() {
 document.addEventListener('DOMContentLoaded', () => {
     cnpjInput.focus();
     searchSection.classList.add('active');
+    renderHistory(); // Carregar histórico na página inicial
 });
