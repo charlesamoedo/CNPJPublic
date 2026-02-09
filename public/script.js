@@ -771,7 +771,7 @@ async function handleSearch() {
     }
     
     if (!isValidCNPJ(cnpj)) {
-        errorMessage.textContent = 'CNPJ inválido. O CNPJ deve ter 14 dígitos válidos.';
+        errorMessage.textContent = 'CNPJ inválido, favor verificar...';
         return;
     }
     
