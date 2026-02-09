@@ -131,6 +131,7 @@ function renderHistory() {
             <div class="history-card" onclick="searchFromHistory('${item.cnpj}')">
                 <div class="history-card-cnpj">${item.cnpj}</div>
                 <div class="history-card-company" title="${item.name}">${item.name}</div>
+                <button class="history-card-delete" onclick="event.stopPropagation(); deleteFromHistory('${item.cnpj}')" title="Remover do histórico">🗑️</button>
             </div>
         `;
     });
@@ -153,6 +154,21 @@ function searchFromHistory(cnpj) {
         cnpjInput.focus();
         handleSearch();
     }
+}
+
+// Função para deletar do histórico
+function deleteFromHistory(cnpj) {
+    const history = getHistory();
+    
+    // Confirmar antes de deletar
+    if (!confirm(`Remover ${cnpj} do histórico?`)) {
+        return;
+    }
+    
+    // Filtrar e remover
+    const filtered = history.filter(item => item.cnpj !== cnpj);
+    saveHistory(filtered);
+    renderHistory();
 }
 
 // ====== FIM DE FUNÇÕES DE HISTÓRICO ======
