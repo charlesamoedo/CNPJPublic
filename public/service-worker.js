@@ -1,9 +1,12 @@
-const CACHE_NAME = 'cnpjpublic-v1';
+const CACHE_NAME = 'cnpjpublic-v2';
 const urlsToCache = [
   '/',
   '/index.html',
+  '/dashboard.html',
   '/style.css',
   '/script.js',
+  '/auth.js',
+  '/dashboard.js',
   '/manifest.json'
 ];
 
@@ -13,11 +16,14 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('✅ Cache aberto');
-        return cache.addAll(urlsToCache);
+        return cache.addAll(urlsToCache).catch(() => {
+          // Continuar mesmo se alguns arquivos falharem
+          return Promise.resolve();
+        });
       })
       .catch(err => console.error('❌ Erro ao cachear:', err))
   );
-  self.skipWaiting();
+  // Não usar skipWaiting para evitar reativações
 });
 
 // Ativar Service Worker
@@ -34,7 +40,8 @@ self.addEventListener('activate', event => {
       );
     })
   );
-  self.clients.claim();
+  // Só fazer claim após primeiro registro
+  return self.clients.claim();
 });
 
 // Estratégia: Network First para API, Cache First para assets
@@ -66,22 +73,27 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       caches.match(request)
         .then(response => {
+          // Se estiver em cache, retornar
           if (response) {
             return response;
           }
+
           return fetch(request).then(response => {
-            if (!response || response.status !== 200 || response.type !== 'basic') {
+            // Validar resposta
+            if (!response || response.status !== 200 || response.type === 'error') {
               return response;
             }
+
             const responseToCache = response.clone();
             caches.open(CACHE_NAME).then(cache => {
               cache.put(request, responseToCache);
             });
+
             return response;
           });
         })
         .catch(() => {
-          // Fallback se offline
+          // Fallback se offline e não houver cache
           return new Response('Offline - conteúdo não disponível', {
             status: 503,
             statusText: 'Service Unavailable',
