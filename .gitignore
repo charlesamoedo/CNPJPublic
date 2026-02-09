@@ -8,3 +8,5 @@ dist/
 build/
 .vscode/settings.json
 .idea/
+.vercel
+.env*.local

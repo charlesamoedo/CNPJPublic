@@ -7,9 +7,8 @@ const searchSection = document.getElementById('searchSection');
 const resultsSection = document.getElementById('resultsSection');
 const cardsContainer = document.getElementById('cardsContainer');
 
-// API endpoint - usar o proxy local ou remoto
-const API_ENDPOINT = 'http://localhost:3000/api/cnpj'; // Para desenvolvimento local
-// const API_ENDPOINT = 'https://seu-servidor.com/api/cnpj'; // Para produção
+// API endpoint - usar rota relativa para funcionar em qualquer ambiente
+const API_ENDPOINT = '/api/cnpj';
 
 // Aplicar máscara ao input
 cnpjInput.addEventListener('input', (e) => {
