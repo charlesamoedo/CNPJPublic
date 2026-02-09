@@ -50,7 +50,7 @@ function sanitizeCNPJ(cnpj) {
     return cnpj.replace(/\D/g, '');
 }
 
-// Função para validar CNPJ
+// Função para validar CNPJ com dígitos verificadores
 function isValidCNPJ(cnpj) {
     const sanitized = sanitizeCNPJ(cnpj);
     
@@ -61,6 +61,43 @@ function isValidCNPJ(cnpj) {
     
     // Não pode ser sequência de números iguais
     if (/^(\d)\1{13}$/.test(sanitized)) {
+        return false;
+    }
+    
+    // Validar primeiro dígito verificador
+    let size = sanitized.length - 2;
+    let numbers = sanitized.substring(0, size);
+    let digits = sanitized.substring(size);
+    let sum = 0;
+    let pos = size - 7;
+    
+    for (let i = size; i >= 1; i--) {
+        sum += numbers.charAt(size - i) * pos--;
+        if (pos < 2) {
+            pos = 9;
+        }
+    }
+    
+    let result = sum % 11 < 2 ? 0 : 11 - sum % 11;
+    if (result !== parseInt(digits.charAt(0))) {
+        return false;
+    }
+    
+    // Validar segundo dígito verificador
+    size = sanitized.length - 1;
+    numbers = sanitized.substring(0, size);
+    sum = 0;
+    pos = size - 7;
+    
+    for (let i = size; i >= 1; i--) {
+        sum += numbers.charAt(size - i) * pos--;
+        if (pos < 2) {
+            pos = 9;
+        }
+    }
+    
+    result = sum % 11 < 2 ? 0 : 11 - sum % 11;
+    if (result !== parseInt(digits.charAt(1))) {
         return false;
     }
     
@@ -220,6 +257,13 @@ async function exportToPDF() {
 // Gerar PDF simples usando HTML para PDF
 function generateSimplePDF() {
     const data = currentResultData;
+    
+    // Validar se dados existem e têm CNPJ
+    if (!data || !data.cnpj) {
+        alert('Erro: dados inválidos para exportação');
+        return;
+    }
+    
     const cnpj = formataCNPJ(data.cnpj);
 
     // Criar conteúdo HTML/CSS para PDF
@@ -727,7 +771,7 @@ async function handleSearch() {
     }
     
     if (!isValidCNPJ(cnpj)) {
-        errorMessage.textContent = 'CNPJ inválido. Por favor, verifique e tente novamente.';
+        errorMessage.textContent = 'CNPJ inválido. O CNPJ deve ter 14 dígitos válidos.';
         return;
     }
     
@@ -747,12 +791,19 @@ async function handleSearch() {
                 throw new Error('Limite de requisições atingido. Por favor, aguarde alguns momentos e tente novamente.');
             } else if (response.status === 404) {
                 throw new Error('CNPJ não encontrado na base de dados.');
+            } else if (response.status === 400) {
+                throw new Error('CNPJ inválido. Por favor, verifique e tente novamente.');
             } else {
                 throw new Error('Erro ao consultar API. Por favor, tente novamente.');
             }
         }
         
         const data = await response.json();
+        
+        // Validar resposta da API
+        if (!data || !data.cnpj) {
+            throw new Error('Resposta inválida da API. Por favor, tente novamente.');
+        }
         
         // Adicionar ao histórico COM dados completos
         addToHistory(sanitized, data);
