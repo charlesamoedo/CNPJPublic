@@ -3,6 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Consulte dados cadastrais de empresas brasileiras de forma rápida e gratuita">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CNPJPublic">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='75' font-size='80' text-anchor='middle'>🔍</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%236366f1' width='192' height='192'/><text x='96' y='144' font-size='120' text-anchor='middle' fill='white'>🔍</text></svg>">
     <title>Consulta de CNPJ - CNPJPublic</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -43,9 +51,17 @@
             </section>
 
             <section class="results-section" id="resultsSection">
-                <button class="btn-clear" id="clearBtn" onclick="handleClear()">
-                    ← Nova Consulta
-                </button>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <button class="btn-clear" id="clearBtn" onclick="handleClear()">
+                        ← Nova Consulta
+                    </button>
+                    <button class="btn-clear" id="exportBtn" onclick="exportToPDF()" style="border-color: #10b981; color: #10b981;">
+                        📥 Exportar PDF
+                    </button>
+                    <a href="/dashboard.html" class="btn-clear" style="text-decoration: none; border-color: #f59e0b; color: #f59e0b;">
+                        📊 Dashboard
+                    </a>
+                </div>
                 <div class="cards-container" id="cardsContainer"></div>
             </section>
         </main>
@@ -56,5 +72,32 @@
     </div>
 
     <script src="script.js"></script>
+    <script>
+        // Registrar Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker registrado:', registration);
+                    })
+                    .catch(error => {
+                        console.log('❌ Erro ao registrar Service Worker:', error);
+                    });
+            });
+        }
+
+        // Detectar quando app foi instalado
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('📱 App pode ser instalado');
+        });
+
+        window.addEventListener('appinstalled', () => {
+            console.log('🎉 App instalado com sucesso');
+            deferredPrompt = null;
+        });
+    </script>
 </body>
 </html>

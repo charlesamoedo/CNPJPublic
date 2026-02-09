@@ -159,6 +159,8 @@ function searchFromHistory(cnpj) {
 
 // Função para exibir resultados (reutilizável)
 function displayResults(data) {
+    currentResultData = data; // Armazenar para exportação
+    
     // Esconder search section e mostrar results
     searchSection.classList.remove('active');
     resultsSection.classList.add('active');
@@ -168,6 +170,230 @@ function displayResults(data) {
 }
 
 // ====== FIM DE FUNÇÃO AUXILIAR ======
+
+// ====== FUNÇÕES DE EXPORTAÇÃO ======
+
+// Armazenar dados da consulta atual para exportar
+let currentResultData = null;
+
+// Exportar para PDF
+async function exportToPDF() {
+    if (!currentResultData) {
+        alert('Nenhum resultado para exportar');
+        return;
+    }
+
+    try {
+        // Carregar biblioteca jsPDF dinamicamente
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        script.onload = () => {
+            // Usar jsPDF nativo (sem biblioteca externa)
+            generatePDFContent();
+        };
+        document.head.appendChild(script);
+
+        // Gerar PDF com formato simples usando data URI
+        generateSimplePDF();
+    } catch (error) {
+        console.error('Erro ao exportar PDF:', error);
+        alert('Erro ao gerar PDF');
+    }
+}
+
+// Gerar PDF simples usando HTML para PDF
+function generateSimplePDF() {
+    const data = currentResultData;
+    const cnpj = formataCNPJ(data.cnpj);
+
+    // Criar conteúdo HTML/CSS para PDF
+    const pdfContent = `
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 20px;
+                    color: #333;
+                }
+                .header {
+                    border-bottom: 3px solid #6366f1;
+                    padding-bottom: 20px;
+                    margin-bottom: 30px;
+                }
+                .header h1 {
+                    color: #6366f1;
+                    margin: 0 0 10px 0;
+                }
+                .header p {
+                    margin: 0;
+                    color: #666;
+                    font-size: 12px;
+                }
+                .content {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 20px;
+                }
+                .field {
+                    flex: 1;
+                    min-width: 250px;
+                    border: 1px solid #ddd;
+                    padding: 15px;
+                    border-radius: 8px;
+                    page-break-inside: avoid;
+                }
+                .field-label {
+                    font-size: 12px;
+                    color: #999;
+                    text-transform: uppercase;
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                    letter-spacing: 1px;
+                }
+                .field-value {
+                    font-size: 14px;
+                    color: #333;
+                    font-weight: 500;
+                    word-break: break-word;
+                }
+                .emphasis {
+                    color: #6366f1;
+                    font-weight: 700;
+                    font-size: 15px;
+                }
+                .status {
+                    display: inline-block;
+                    padding: 8px 12px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: 600;
+                }
+                .status-ativa {
+                    background: #d1fae5;
+                    color: #10b981;
+                }
+                .status-inativa {
+                    background: #fee2e2;
+                    color: #ef4444;
+                }
+                .footer {
+                    margin-top: 30px;
+                    padding-top: 20px;
+                    border-top: 1px solid #ddd;
+                    font-size: 11px;
+                    color: #999;
+                    text-align: center;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Relatório CNPJ - CNPJPublic</h1>
+                <p>Gerado em ${new Date().toLocaleString('pt-BR')}</p>
+            </div>
+
+            <div class="content">
+                <div class="field" style="flex: 1 1 100%;">
+                    <div class="field-label">Razão Social</div>
+                    <div class="field-value emphasis">${escapeHTML(data.nome || 'N/A')}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">CNPJ</div>
+                    <div class="field-value emphasis">${cnpj}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">Nome Fantasia</div>
+                    <div class="field-value">${escapeHTML(data.fantasia || 'Não informado')}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">Situação Cadastral</div>
+                    <div class="field-value">
+                        <span class="status ${data.situacao.toUpperCase() === 'ATIVA' ? 'status-ativa' : 'status-inativa'}">
+                            ${data.situacao}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">Data de Abertura</div>
+                    <div class="field-value">${formatDate(data.abertura) || 'N/A'}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">Natureza Jurídica</div>
+                    <div class="field-value">${escapeHTML(data.natureza_juridica || 'Não informado')}</div>
+                </div>
+
+                <div class="field" style="flex: 1 1 100%;">
+                    <div class="field-label">Endereço</div>
+                    <div class="field-value">
+                        ${escapeHTML(data.logradouro || 'Não informado')}, 
+                        ${data.numero || 'S/N'}
+                        ${data.complemento ? ', ' + escapeHTML(data.complemento) : ''}
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">Bairro</div>
+                    <div class="field-value">${escapeHTML(data.bairro || 'Não informado')}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">Cidade/UF</div>
+                    <div class="field-value">${escapeHTML(data.municipio || 'Não informado')} - ${data.uf || 'N/A'}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">CEP</div>
+                    <div class="field-value">${data.cep || 'Não informado'}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">Telefone</div>
+                    <div class="field-value">${data.telefone || 'Não informado'}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">Email</div>
+                    <div class="field-value">${data.email || 'Não informado'}</div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>Dados fornecidos pela ReceitaWS © 2026 CNPJPublic</p>
+            </div>
+        </body>
+        </html>
+    `;
+
+    // Criar blob e baixar
+    const blob = new Blob([pdfContent], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `CNPJ_${sanitizeCNPJ(data.cnpj)}_${new Date().getTime()}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    // Alternativa: usar print para PDF
+    setTimeout(() => {
+        const printWindow = window.open('', '', 'width=800,height=600');
+        printWindow.document.write(pdfContent);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+    }, 100);
+}
+
+// ====== FIM DE FUNÇÕES DE EXPORTAÇÃO ======
 
 // Função para criar cards de resultado
 function createResultCards(data) {
@@ -357,6 +583,7 @@ function handleClear() {
     cnpjInput.value = '';
     errorMessage.textContent = '';
     cardsContainer.innerHTML = '';
+    currentResultData = null; // Limpar dados para exportação
     searchSection.classList.add('active');
     resultsSection.classList.remove('active');
     cnpjInput.focus();

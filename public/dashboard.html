@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CNPJPublic</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+            animation: slideInUp 0.5s ease;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            opacity: 0.9;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .stat-subtitle {
+            font-size: 0.85rem;
+            opacity: 0.85;
+        }
+
+        .dashboard-section {
+            margin-bottom: 50px;
+        }
+
+        .dashboard-section h2 {
+            font-size: 1.8rem;
+            color: var(--text-dark);
+            margin-bottom: 25px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            border: 2px solid var(--border-light);
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .top-companies {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .company-item {
+            background: white;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .company-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .company-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        .company-cnpj {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-family: 'Courier New', monospace;
+            margin-bottom: 12px;
+        }
+
+        .company-visits {
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 30px;
+            padding: 12px 24px;
+            background: var(--bg-lighter);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Dashboard CNPJPublic</h1>
+            <p class="subtitle">Estatísticas das suas consultas</p>
+        </header>
+
+        <main>
+            <a href="/" class="btn-back">← Voltar para Busca</a>
+
+            <!-- Estatísticas -->
+            <section class="dashboard-section">
+                <h2>📈 Resumo</h2>
+                <div class="dashboard-grid" id="statsGrid">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>Nenhuma consulta realizada ainda. Faça sua primeira busca!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Empresas Mais Consultadas -->
+            <section class="dashboard-section">
+                <h2>🏢 Empresas Mais Consultadas</h2>
+                <div class="chart-container">
+                    <div class="top-companies" id="topCompanies">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <p>Nenhuma empresa consultada ainda</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>© 2026 CNPJPublic | Dados fornecidos pela ReceitaWS</p>
+        </footer>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
