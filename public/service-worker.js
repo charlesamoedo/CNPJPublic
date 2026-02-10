@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cnpjpublic-v2';
+const CACHE_NAME = 'cnpjpublic-v4';
 const urlsToCache = [
   '/',
   '/index.html',

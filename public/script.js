@@ -158,18 +158,21 @@ function renderHistory() {
     const history = getHistory();
     
     if (history.length === 0) {
-        historyGrid.innerHTML = '<p class="empty-message">Nenhuma consulta realizada ainda</p>';
+        historyGrid.innerHTML = '<li class="fd-list__item empty-message" role="listitem">Nenhuma consulta realizada ainda</li>';
         return;
     }
     
     let html = '';
     history.forEach((item, index) => {
+        const safeName = escapeHTML(item.name);
         html += `
-            <div class="history-card" onclick="searchFromHistory('${item.cnpj}')">
-                <div class="history-card-cnpj">${item.cnpj}</div>
-                <div class="history-card-company" title="${item.name}">${item.name}</div>
-                <button class="history-card-delete" onclick="event.stopPropagation(); deleteFromHistory('${item.cnpj}')" title="Remover do histórico">🗑️</button>
-            </div>
+            <li class="fd-list__item history-list__item" role="listitem">
+                <button class="history-entry" type="button" onclick="searchFromHistory('${item.cnpj}')">
+                    <span class="fd-list__title history-entry__cnpj">${item.cnpj}</span>
+                    <span class="fd-list__title history-entry__company" title="${safeName}">${safeName}</span>
+                </button>
+                <button class="history-card-delete fd-button fd-button--transparent fd-button--compact" type="button" onclick="event.stopPropagation(); deleteFromHistory('${item.cnpj}')" aria-label="Remover ${item.cnpj} do histórico">🗑️</button>
+            </li>
         `;
     });
     
@@ -688,19 +691,22 @@ function createResultCards(data) {
         }
     ];
     
-    let html = '';
-    cards.forEach(card => {
-        html += `
-            <div class="card">
-                <div class="card-title">${card.title}</div>
-                <div class="card-value ${card.emphasis ? 'emphasis' : ''}">
-                    ${card.isHTML ? card.value : escapeHTML(card.value)}
+    return cards.map(card => {
+        const rawValue = card.value ?? 'Não informado';
+        const content = card.isHTML ? rawValue : escapeHTML(String(rawValue));
+        return `
+            <article class="fd-card result-card" role="group" aria-label="${card.title}">
+                <header class="fd-card__header">
+                    <h3 class="fd-card__title">${card.title}</h3>
+                </header>
+                <div class="fd-card__content">
+                    <p class="result-card__value ${card.emphasis ? 'result-card__value--emphasis' : ''}">
+                        ${content}
+                    </p>
                 </div>
-            </div>
+            </article>
         `;
-    });
-    
-    return html;
+    }).join('');
 }
 
 // Função para formatar CNPJ
