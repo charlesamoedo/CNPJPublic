@@ -86,7 +86,7 @@ npm run dev
 
 ## 📸 Preview
 
-> ![alt text](image.png)
+![Preview da aplicação](image.png)
 
 ---
 
