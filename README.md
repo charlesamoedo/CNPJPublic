@@ -84,7 +84,7 @@ npm run dev
 
 ## 📸 Preview
 ![Preview da aplicação](image.png)
-
+Print da página de consulta com histórico.
 ---
 
 ## 🚀 Próximas evoluções
