@@ -82,11 +82,6 @@ npm install
 npm run dev
 ```
 
-## 📸 Preview
-!image.png
-Print da página de consulta com histórico.
----
-
 ## 🚀 Próximas evoluções
 
 Este projeto ainda pode evoluir bastante. Algumas ideias:
