@@ -83,7 +83,7 @@ npm run dev
 ```
 
 ## 📸 Preview
-![Preview da aplicação](image.png)
+!image.png
 Print da página de consulta com histórico.
 ---
 
