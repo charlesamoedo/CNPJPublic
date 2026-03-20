@@ -84,6 +84,7 @@ npm run dev
 
 ## 📸 Preview
 ![Preview da aplicação](image.png)
+
 ---
 
 ## 🚀 Próximas evoluções
