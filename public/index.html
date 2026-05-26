@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Consulta CNPJ - CA Sistemas</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        flex: 1;
+      }
+
+      header {
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+        margin-top: 20px;
+      }
+
+      header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      header p {
+        font-size: 1.1em;
+        opacity: 0.9;
+      }
+
+      .search-box {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        margin-bottom: 30px;
+        display: flex;
+        gap: 10px;
+      }
+
+      .search-box input {
+        flex: 1;
+        padding: 12px 15px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 1em;
+        transition: border-color 0.3s;
+      }
+
+      .search-box input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .search-box button {
+        padding: 12px 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1em;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      .search-box button:hover {
+        transform: translateY(-2px);
+      }
+
+      .search-box button:active {
+        transform: translateY(0);
+      }
+
+      .results {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        display: none;
+      }
+
+      .results.show {
+        display: block;
+        animation: slideIn 0.3s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .results h2 {
+        color: #333;
+        margin-bottom: 20px;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 10px;
+      }
+
+      .section {
+        margin-bottom: 25px;
+      }
+
+      .section h3 {
+        color: #667eea;
+        font-size: 1.2em;
+        margin-bottom: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+      }
+
+      .section:first-child h3 {
+        border-top: none;
+        padding-top: 0;
+      }
+
+      .data-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+
+      .data-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+      }
+
+      .data-label {
+        font-weight: bold;
+        color: #667eea;
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+      }
+
+      .data-value {
+        color: #333;
+        font-size: 1.05em;
+        word-break: break-word;
+      }
+
+      .data-value a {
+        color: #667eea;
+        text-decoration: none;
+      }
+
+      .data-value a:hover {
+        text-decoration: underline;
+      }
+
+      .list-item {
+        padding: 10px;
+        background: #f8f9fa;
+        margin: 8px 0;
+        border-radius: 5px;
+        border-left: 3px solid #764ba2;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 20px;
+        color: #667eea;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error {
+        background: #fee;
+        color: #c33;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #c33;
+        margin-bottom: 20px;
+      }
+
+      footer {
+        text-align: center;
+        color: white;
+        margin-top: 40px;
+        padding: 20px;
+        opacity: 0.8;
+        font-size: 0.9em;
+      }
+
+      footer a {
+        color: white;
+        text-decoration: none;
+      }
+
+      footer a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🔍 Consulta CNPJ</h1>
+        <p>Informações completas de empresas brasileiras</p>
+      </header>
+
+      <div class="search-box">
+        <input
+          type="text"
+          id="cnpjInput"
+          placeholder="Digite o CNPJ (com ou sem formatação)"
+          maxlength="18"
+        />
+        <button onclick="consultar()">Consultar</button>
+      </div>
+
+      <div id="results" class="results"></div>
+    </div>
+
+    <footer>
+      <p>
+        © 2026 CA Sistemas |
+        <a href="https://github.com/charlesamoedo/CNPJPublic" target="_blank"
+          >GitHub</a
+        >
+        | v1.0.0
+      </p>
+    </footer>
+
+    <script>
+      const cnpjInput = document.getElementById("cnpjInput");
+      const resultsDiv = document.getElementById("results");
+
+      // Permitir Enter para consultar
+      cnpjInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") consultar();
+      });
+
+      function formatarCNPJ(cnpj) {
+        return cnpj.replace(/\D/g, "");
+      }
+
+      function formatarDados(dados) {
+        let html = `<h2>✓ Dados da Empresa</h2>`;
+
+        // Informações Básicas
+        html += `
+          <div class="section">
+            <h3>📋 Informações Básicas</h3>
+            <div class="data-grid">
+              <div class="data-item">
+                <div class="data-label">CNPJ</div>
+                <div class="data-value">${dados.cnpj || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Razão Social</div>
+                <div class="data-value">${dados.nome || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Nome Fantasia</div>
+                <div class="data-value">${dados.fantasia || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Status</div>
+                <div class="data-value">${dados.status || "N/A"}</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Situação
+        html += `
+          <div class="section">
+            <h3>⚙️ Situação</h3>
+            <div class="data-grid">
+              <div class="data-item">
+                <div class="data-label">Situação</div>
+                <div class="data-value">${dados.situacao || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Data da Situação</div>
+                <div class="data-value">${dados.data_situacao || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Motivo da Situação</div>
+                <div class="data-value">${dados.motivo_situacao || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Situação Especial</div>
+                <div class="data-value">${dados.situacao_especial || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Data Situação Especial</div>
+                <div class="data-value">${dados.data_situacao_especial || "N/A"}</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Dados da Empresa
+        html += `
+          <div class="section">
+            <h3>🏢 Dados da Empresa</h3>
+            <div class="data-grid">
+              <div class="data-item">
+                <div class="data-label">Tipo</div>
+                <div class="data-value">${dados.tipo || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Porte</div>
+                <div class="data-value">${dados.porte || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Natureza Jurídica</div>
+                <div class="data-value">${dados.natureza_juridica || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Data de Abertura</div>
+                <div class="data-value">${dados.abertura || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Capital Social</div>
+                <div class="data-value">R$ ${dados.capital_social || "N/A"}</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Atividades
+        if (dados.atividade_principal || dados.atividades_secundarias) {
+          html += `<div class="section"><h3>💼 Atividades</h3>`;
+
+          if (dados.atividade_principal && dados.atividade_principal.length > 0) {
+            const atividade = dados.atividade_principal[0];
+            html += `
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #667eea;">Atividade Principal:</strong>
+                <div class="list-item">
+                  <strong>${atividade.code}</strong> - ${atividade.text}
+                </div>
+              </div>
+            `;
+          }
+
+          if (
+            dados.atividades_secundarias &&
+            dados.atividades_secundarias.length > 0
+          ) {
+            html += `<strong style="color: #667eea;">Atividades Secundárias:</strong>`;
+            dados.atividades_secundarias.forEach((atividade) => {
+              html += `
+                <div class="list-item">
+                  <strong>${atividade.code}</strong> - ${atividade.text}
+                </div>
+              `;
+            });
+          }
+
+          html += `</div>`;
+        }
+
+        // Endereço
+        html += `
+          <div class="section">
+            <h3>📍 Endereço</h3>
+            <div class="data-grid">
+              <div class="data-item">
+                <div class="data-label">Logradouro</div>
+                <div class="data-value">${dados.logradouro || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Número</div>
+                <div class="data-value">${dados.numero || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Complemento</div>
+                <div class="data-value">${dados.complemento || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Bairro</div>
+                <div class="data-value">${dados.bairro || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Município</div>
+                <div class="data-value">${dados.municipio || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">UF</div>
+                <div class="data-value">${dados.uf || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">CEP</div>
+                <div class="data-value">${dados.cep || "N/A"}</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Contato
+        html += `
+          <div class="section">
+            <h3>📞 Contato</h3>
+            <div class="data-grid">
+              <div class="data-item">
+                <div class="data-label">Telefone</div>
+                <div class="data-value">${dados.telefone || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">Email</div>
+                <div class="data-value">${
+                  dados.email ? `<a href="mailto:${dados.email}">${dados.email}</a>` : "N/A"
+                }</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Regime de Tributação
+        html += `<div class="section"><h3>💰 Regime de Tributação</h3><div class="data-grid">`;
+
+        if (dados.simples) {
+          html += `
+            <div class="data-item">
+              <div class="data-label">Simples Nacional</div>
+              <div class="data-value">${dados.simples.optante ? "Sim" : "Não"}</div>
+            </div>
+          `;
+          if (dados.simples.data_opcao) {
+            html += `
+              <div class="data-item">
+                <div class="data-label">Data de Opção</div>
+                <div class="data-value">${dados.simples.data_opcao}</div>
+              </div>
+            `;
+          }
+        }
+
+        if (dados.simei) {
+          html += `
+            <div class="data-item">
+              <div class="data-label">SIMEI</div>
+              <div class="data-value">${dados.simei.optante ? "Sim" : "Não"}</div>
+            </div>
+          `;
+        }
+
+        html += `</div></div>`;
+
+        // Quadro de Sócios
+        if (dados.qsa && dados.qsa.length > 0) {
+          html += `
+            <div class="section">
+              <h3>👥 Quadro de Sócios</h3>
+          `;
+          dados.qsa.forEach((socio) => {
+            html += `<div class="list-item"><strong>${socio.nome || "N/A"}</strong></div>`;
+          });
+          html += `</div>`;
+        }
+
+        // Informações Adicionais
+        html += `
+          <div class="section">
+            <h3>ℹ️ Informações Adicionais</h3>
+            <div class="data-grid">
+              <div class="data-item">
+                <div class="data-label">Última Atualização</div>
+                <div class="data-value">${dados.ultima_atualizacao || "N/A"}</div>
+              </div>
+              <div class="data-item">
+                <div class="data-label">EFR</div>
+                <div class="data-value">${dados.efr || "N/A"}</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        return html;
+      }
+
+      async function consultar() {
+        const cnpj = formatarCNPJ(cnpjInput.value.trim());
+
+        if (!cnpj || cnpj.length < 14) {
+          resultsDiv.innerHTML =
+            '<div class="error">❌ CNPJ inválido. Digite um CNPJ com 14 dígitos.</div>';
+          resultsDiv.classList.add("show");
+          return;
+        }
+
+        resultsDiv.innerHTML =
+          '<div class="loading"><div class="spinner"></div>Consultando...</div>';
+        resultsDiv.classList.add("show");
+
+        try {
+          const response = await fetch(`/api/cnpj?cnpj=${cnpj}`);
+
+          if (!response.ok) {
+            throw new Error("Erro ao consultar a API");
+          }
+
+          const dados = await response.json();
+
+          if (dados.status === "ERROR") {
+            resultsDiv.innerHTML =
+              `<div class="error">❌ ${dados.message || "CNPJ não encontrado"}</div>`;
+          } else {
+            resultsDiv.innerHTML = formatarDados(dados);
+            resultsDiv.classList.add("show");
+          }
+        } catch (error) {
+          resultsDiv.innerHTML =
+            `<div class="error">❌ Erro: ${error.message}</div>`;
+        }
+      }
+
+      // Focus no input ao carregar
+      cnpjInput.focus();
+    </script>
+  </body>
+</html>
