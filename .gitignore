@@ -1,0 +1,8 @@
+node_modules/
+yarn.lock
+package-lock.json
+.env
+.env.local
+.DS_Store
+CNPJConsultados/
+resultado.json
